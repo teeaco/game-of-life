@@ -1,4 +1,4 @@
-;format ELF64
+format ELF64
 
 include "logic.asm"
 

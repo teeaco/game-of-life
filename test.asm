@@ -10,6 +10,7 @@ section '.data' writable
 
     cell_buf db "Cell (x,y): Neighbors: ", '0', 20, 0
     newline db 10, 0
+    msg db "work", 0xA, 0
 
 section '.text' executable
 public _start
@@ -160,3 +161,17 @@ new_line:
     pop rdi
     pop rax
     ret
+
+
+print:
+    ;инициализация регистров для вывода информации на экран
+    mov rax, 4
+    mov rbx, 1
+    mov rcx, msg
+    mov rdx, 14
+    syscall
+
+exit:
+    mov rax, 1
+    mov rbx, 0
+    syscall
