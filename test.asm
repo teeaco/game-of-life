@@ -6,140 +6,62 @@ section '.data' writable
          db 0,0,0,1,0
          db 0,1,1,1,0
          db 0,0,0,0,0
+    public grid
     grid_size equ 5
 
     cell_buf db "Cell (x,y): Neighbors: ", '0', 20, 0
     newline db 10, 0
     msg db "work", 0xA, 0
+    space db " ", 0
+    digit_buffer rb 1
 
 section '.text' executable
 public _start
 
 _start:
-    ; Указатель на сетку
-    mov rsi, grid   ; Адрес начала grid в .data
+    lea rsi, [grid]
+    xor rbx, rbx
 
-    ; Тестируем клетку index = 7 → координаты (2,1)
-    mov edi, 7
-    mov ecx, grid_size
-    call count_neighbors
+.loop:
+    cmp rbx, 25
+    jge .done
 
-    ; Преобразуем DL в ASCII
-    add dl, '0'
-    mov [cell_buf + 18], dl
+    mov al, [rsi + rbx]
 
-    ; Выводим строку
-    lea rsi, [cell_buf]
-    mov rdx, 22
+    ; Преобразуем в ASCII
+    add al, '0'
+    mov [digit_buffer], al
+
+    ; Выводим цифру
+    lea rsi, [digit_buffer]
+    mov rdx, 1
     mov rax, 1
     mov rdi, 1
     syscall
 
-    ; Новая строка
-    call new_line
-
-    ; Выход из программы
-    xor rax, rax
+    ; Выводим пробел
+    lea rsi, [space]
+    mov rdx, 1
+    mov rax, 1
+    mov rdi, 1
     syscall
 
-
-;---[count_neighbors]---
-; Вход: ESI = указатель на grid
-;       EDI = индекс клетки
-;       ECX = размер сетки
-; Выход: DL = число живых соседей
-count_neighbors:
-.count_neighbors_main:
-    push rbx
-    push r8
-    push r9
-    push r10
-    push r11
-    push r12
-
-    xor dl, dl        ; Счётчик живых соседей
-
-    ; Рассчитываем Y и X из index
-    mov eax, edi      ; EDI = index
-    xor edx, edx
-    div ecx           ; EAX = Y, EDX = X
-    mov r11d, eax     ; Сохраняем Y
-    mov r12d, edx     ; Сохраняем X
-
-    mov r8d, -1       ; dy ∈ [-1..+1]
-.y_loop:
-    mov r9d, -1       ; dx ∈ [-1..+1]
-.x_loop:
-
-    ; Пропускаем центральную клетку
-    cmp r8d, 0
-    jne .check_bounds
-    cmp r9d, 0
-    je .skip_center
-
-.check_bounds:
-    ; Проверяем Y + dy
-    mov eax, r11d
-    add eax, r8d
-    cmp eax, 0
-    jl .next_neighbor
-    cmp eax, grid_size - 1
-    jg .next_neighbor
-
-    ; Проверяем X + dx
-    mov eax, r12d
-    add eax, r9d
-    cmp eax, 0
-    jl .next_neighbor
-    cmp eax, grid_size - 1
-    jg .next_neighbor
-
-    ; Индекс = (Y + dy)*size + (X + dx)
-    mov eax, r11d
-    add eax, r8d
-    imul eax, grid_size
-    add eax, r12d
-    add eax, r9d
-
-    ; Проверяем выход за границы массива
-    cmp eax, 0
-    jl .next_neighbor
-    cmp eax, 24
-    jg .next_neighbor
-
-    cdqe
-    cmp byte [rsi + rax], 1
-    jne .next_neighbor
-    inc dl                ; Увеличиваем счётчик живых
-
-.next_neighbor:
-    inc r9d
-    cmp r9d, 1
-    jle .x_loop
-
-    inc r8d
-    cmp r8d, 1
-    jle .y_loop
+    inc rbx
+    jmp .loop
 
 .done:
-    pop r12
-    pop r11
-    pop r10
-    pop r9
-    pop r8
-    pop rbx
-    ret
+    ; Перевод строки
+    lea rsi, [newline]
+    mov rdx, 1
+    mov rax, 1
+    mov rdi, 1
+    syscall
 
-.skip_center:
-    inc r9d
-    cmp r9d, 1
-    jle .x_loop
+    ; Выход
+    mov rax, 60
+    xor rdi, rdi
+    syscall
 
-    inc r8d
-    cmp r8d, 1
-    jle .y_loop
-
-    jmp .done
 
 
 ;---[new_line]---
@@ -167,7 +89,7 @@ print:
     ;инициализация регистров для вывода информации на экран
     mov rax, 4
     mov rbx, 1
-    mov rcx, msg
+    ;mov rcx, msg
     mov rdx, 14
     syscall
 
@@ -175,3 +97,26 @@ exit:
     mov rax, 1
     mov rbx, 0
     syscall
+
+
+
+;---[print_int]---
+; Вход: AL = число от 0 до 9
+; Выход: выводит его через sys_write
+print_int:
+push rsi
+push rdx
+push rdi
+.print_int_main:
+    add al, '0'          ; преобразуем в ASCII
+    mov [digit_buffer], al
+
+    lea rsi, [digit_buffer]
+    mov rdx, 1
+    mov rax, 1            ; sys_write
+    mov rdi, 1            ; stdout
+    syscall
+pop rdi
+pop rdx
+pop rsi
+    ret
