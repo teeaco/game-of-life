@@ -120,3 +120,124 @@ pop rdi
 pop rdx
 pop rsi
     ret
+
+
+count_neighbors:
+    push rcx
+    push rdi
+    push rdx
+    push rbx
+    push r8
+    push r9
+    push r10
+    push r11
+    push r12
+
+    xor dl, dl        ; Счётчик соседей
+
+    mov rbx, rdi      ; сохраняем index
+    xor rdx, rdx
+    mov rax, rbx
+    mov ecx, grid_size
+    div ecx           ; RAX = Y, RDX = X
+    mov r11d, eax     ; Y
+    mov r12d, edx     ; X
+
+    ; DL = счётчик живых соседей
+    xor dl, dl
+
+    ; Сосед (x-1, y-1)
+    mov eax, r12d      ; X
+    add eax, -1
+    mov ebx, r11d      ; Y
+    add ebx, -1
+    call check_bounds_and_alive
+
+    ; Сосед (x, y-1)
+    mov eax, r12d
+    mov ebx, r11d
+    add ebx, -1
+    call check_bounds_and_alive
+
+    ; Сосед (x+1, y-1)
+    mov eax, r12d
+    add eax, +1
+    mov ebx, r11d
+    add ebx, -1
+    call check_bounds_and_alive
+
+    ; Сосед (x-1, y)
+    mov eax, r12d
+    add eax, -1
+    mov ebx, r11d
+    call check_bounds_and_alive
+
+    ; Сосед (x+1, y)
+    mov eax, r12d
+    add eax, +1
+    mov ebx, r11d
+    call check_bounds_and_alive
+
+    ; Сосед (x-1, y+1)
+    mov eax, r12d
+    add eax, -1
+    mov ebx, r11d
+    add ebx, +1
+    call check_bounds_and_alive
+
+    ; Сосед (x, y+1)
+    mov eax, r12d
+    mov ebx, r11d
+    add ebx, +1
+    call check_bounds_and_alive
+
+    ; Сосед (x+1, y+1)
+    mov eax, r12d
+    add eax, +1
+    mov ebx, r11d
+    add ebx, +1
+    call check_bounds_and_alive
+
+    mov rcx, grid_size * grid_size
+    pop r12
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rbx
+    pop rdx
+    pop rdi
+    pop rcx
+    ret
+
+
+
+check_bounds_and_alive:
+    push rax
+    push rbx
+
+    ; Проверяем x < 0 или x >= grid_size
+    cmp eax, 0
+    jl .skip
+    cmp eax, grid_size - 1
+    jg .skip
+
+    ; Проверяем y < 0 или y >= grid_size
+    cmp ebx, 0
+    jl .skip
+    cmp ebx, grid_size - 1
+    jg .skip
+
+    ; Индекс = y * grid_size + x
+    mov ecx, grid_size
+    imul ebx, ecx
+    add ebx, eax
+    cdqe
+    cmp byte [rsi + rax], 1
+    jne .skip
+    inc dl   ; Увеличиваем счётчик живых соседей
+
+    .skip:
+    pop rbx
+    pop rax
+    ret

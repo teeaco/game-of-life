@@ -31,7 +31,7 @@ section '.text' executable
 public _start
 
 _start:
-    movzx r12, byte [max_iterations]  ; Correctly load byte into register
+    movzx r12, byte [max_iterations]  
     ;call print_grid_with_generation
     .main_loop:
         call print_grid_with_generation
@@ -39,7 +39,7 @@ _start:
         ; Process the grid
         mov rsi, grid
         mov rdi, new_grid
-        mov rcx, grid_size * grid_size ; <- Исправлено здесь
+        mov rcx, grid_size * grid_size 
         call process_grid 
 
         ; Copy new_grid back to grid

@@ -37,7 +37,7 @@ print_grid_with_generation:
     mov rax, 1
     mov rdi, 1
     lea rsi, [msg]
-    mov rdx, 13        ; Length of "Generation: X" + newline
+    mov rdx, 13        
     syscall
     call new_line
     
@@ -65,41 +65,39 @@ print_grid:
     
     .row_loop:
         mov rcx, grid_size  ; Счетчик столбцов
-        push rsi            ; Сохраняем начало строки
+        push rsi           
         
     .col_loop:
-        ; Загружаем значение клетки
+        ; значение клетки
         mov al, [rsi]
         
-        ; Выбираем строку для вывода
-        mov rdx, 2          ; Длина вывода (2 символа)
-        lea rdi, [dead_cell] ; По умолчанию мертвая клетка
+        mov rdx, 2        
+        lea rdi, [dead_cell] 
         cmp al, 0
         jz .print
-        lea rdi, [alive_cell] ; Живая клетка
+        lea rdi, [alive_cell] 
         
     .print:
-        ; Выводим клетку
         push rcx
         push rsi
-        mov rax, 1          ; sys_write
-        mov rsi, rdi        ; Указатель на строку "0 " или "1 "
-        mov rdi, 1          ; stdout
+        mov rax, 1          
+        mov rsi, rdi       
+        mov rdi, 1       
         syscall
         pop rsi
         pop rcx
         
-        ; Переходим к следующей клетке
+        ;  к следующей клетке
         inc rsi
         dec rcx
         jnz .col_loop
         
-        ; Переход на новую строку
+        ;  на новую строку
         push rsi
-        mov rax, 1          ; sys_write
-        mov rdi, 1          ; stdout
+        mov rax, 1          
+        mov rdi, 1          
         lea rsi, [newline]
-        mov rdx, 1          ; Длина
+        mov rdx, 1          
         syscall
         pop rsi
         
@@ -152,7 +150,7 @@ update_cell:
     cmp al, 1
     je .check_survival
 
-    ; Клетка мертва → проверяем рождение
+    ; Клетка мертва проверяем рождение
     cmp dl, [birth_rule]
     jne .stay_dead
 
@@ -166,12 +164,12 @@ update_cell:
 
 
     .check_survival:
-        ; Живая клетка → проверяем условия выживания
+        ; Живая клетка проверяем условия выживания
         cmp dl, [survive_min]
         jl .die
         cmp dl, [survive_max]
         jg .die
-        ; В пределах → продолжает жить
+        ; В пределах продолжает жить
         mov al, 1
         jmp .done
 
@@ -201,7 +199,7 @@ count_neighbors:
 
     xor dl, dl        ; Счётчик соседей
 
-    mov rbx, rdi      ; сохраняем index
+    mov rbx, rdi      ;  index
     xor rdx, rdx
     mov rax, rbx
     mov ecx, grid_size
@@ -301,9 +299,12 @@ check_bounds_and_alive:
     cdqe
     cmp byte [rsi + rax], 1
     jne .skip
-    inc dl   ; Увеличиваем счётчик живых соседей
+    inc dl   ; счётчик живых соседей
 
     .skip:
     pop rbx
     pop rax
     ret
+
+
+
