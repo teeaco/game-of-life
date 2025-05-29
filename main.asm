@@ -22,7 +22,7 @@ section '.data' writable
 
     birth_rule      db 3    ; Birth rule
     survive_min     db 2    ; Survival minimum
-    survive_max     db 5    ; Survival maximum
+    survive_max     db 4    ; Survival maximum
 
 
     max_iterations db 2  ; Number of generations to simulate
