@@ -4,7 +4,6 @@ include "logic.asm"
 
 section '.bss' writable
     temp_char rb 1      ; Temporary buffer for keyboard input
-    ;digit_buffer rb 2   ; Буфер для цифр
 section '.data' writable
     grid db 0,0,0,0,0
          db 0,0,0,0,0
@@ -353,26 +352,16 @@ process_grid:
   xor rbx, rbx            ; Индекс клетки (0..size*size-1)
   mov rcx, grid_size * grid_size
     .cell_loop:
-        ; Сохраняем указатели и индекс
         push rsi
         push rdi
         push rbx
-
-        ; Подсчёт соседей для текущей клетки
-        mov rdi, rbx        ; Передаем индекс в RDI
-        call count_neighbors ; Результат в DL
-
-        ; В process_grid после call count_neighbors:
-
-
-
 
         ; Восстанавливаем указатель на исходную сетку
         pop rbx
         pop rdi
         pop rsi
 
-        ; Получаем текущее состояние и обновляем
+        ; текущее состояние и обновляем
         mov al, [rsi + rbx]    ; Текущее состояние
         call update_cell        ; AL = новое состояние
         mov [rdi + rbx], al    ; Сохраняем в new_grid
@@ -386,13 +375,6 @@ process_grid:
         pop rax
     ret
 
-
-
-;---[update_cell]---
-; Вход: AL = текущее состояние (0 или 1)
-;       DL = число живых соседей
-; Выход: AL = новое состояние (0 или 1)
-
 ;---[update_cell]---
 ; Вход: AL = текущее состояние (0 или 1)
 ;       DL = число живых соседей
@@ -404,7 +386,7 @@ update_cell:
     ; Мертвая клетка - проверяем рождение
     cmp dl, [birth_rule]
     je .make_alive
-    xor al, al          ; остается мертвой
+    xor al, al          
     ret
 
 .alive_cell:
@@ -413,7 +395,7 @@ update_cell:
     jl .make_dead
     cmp dl, [survive_max]
     jg .make_dead
-    mov al, 1           ; остается живой
+    mov al, 1           
     ret
 
 .make_alive:
@@ -436,9 +418,9 @@ count_neighbors:
     push r9
     push r10
     push r11
-    push rsi       ; Важно сохранить указатель на grid!
+    push rsi       ; 
 
-    ; Преобразуем индекс в координаты (x,y)
+    ; индекс в координаты (x,y)
     mov rax, rdi    ; index
     xor rdx, rdx
     mov rbx, grid_size
@@ -453,7 +435,7 @@ count_neighbors:
 .y_loop:
     mov rcx, -1     ; dx = -1
 .x_loop:
-    ; Пропускаем центральную клетку (dx=0, dy=0)
+    ; Пропускаем центральную клетку
     test r11, r11
     jnz .check_neighbor
     test rcx, rcx
@@ -475,11 +457,11 @@ count_neighbors:
     cmp rbx, grid_size-1
     jg .skip_neighbor   ; если x >= grid_size
 
-    ; Вычисляем индекс соседа
+    ; индекс соседа
     imul rax, grid_size
     add rax, rbx
 
-    ; Проверяем состояние клетки
+    ; состояние клетки
     cmp byte [rsi + rax], 1
     jne .skip_neighbor
     inc r10         ; увеличиваем счетчик живых соседей
@@ -505,3 +487,24 @@ count_neighbors:
     pop rbx
     ret
 
+
+new_line:
+    push rax
+    push rdi
+    push rsi
+    push rdx
+    push rcx
+    mov rax, 0xA
+    push rax
+    mov rdi, 1
+    mov rsi, rsp
+    mov rdx, 1
+    mov rax, 1
+    syscall
+    pop rax
+    pop rcx
+    pop rdx
+    pop rsi
+    pop rdi
+    pop rax
+    ret 

@@ -1,5 +1,3 @@
-;grid_size
-
 
 new_line:
     push rax
